@@ -1,3 +1,6 @@
+<img width="830" height="604" alt="image" src="https://github.com/user-attachments/assets/a372a328-ed73-4d4a-9d6d-7418bc5a4606" />
+
+
 # 🕐 Hours Ledger
 
 A single-page freelance timesheet tracker. Type a task in plain language — "New lead gen set up for Green Pantry — 3h" — and it parses out the task and the hours automatically. Switch to the Month Report tab to see hours totaled by task for any month, with a one-click copy for sending on to a client. No build step, no backend — just an HTML file that saves your log to the browser.
