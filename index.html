@@ -1,0 +1,537 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Hours Ledger</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+  :root{
+    color-scheme: light dark;
+    --bg:#f6f3ec;
+    --surface:#fffdf8;
+    --surface-2:#efe9da;
+    --ink:#211f1a;
+    --ink-soft:#6f6858;
+    --line:#ddd5bf;
+    --accent:#3c6e58;
+    --accent-soft:#e3ede7;
+    --danger:#b6503a;
+    --danger-soft:#f4e3dd;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg:#18170f;
+      --surface:#221f16;
+      --surface-2:#2b271b;
+      --ink:#f1ece0;
+      --ink-soft:#a89c81;
+      --line:#3b3625;
+      --accent:#74bb9a;
+      --accent-soft:#243128;
+      --danger:#e0765c;
+      --danger-soft:#3a251f;
+    }
+  }
+
+  *{box-sizing:border-box;}
+  html, body{margin:0;padding:0;}
+  body{
+    background:var(--bg);
+    color:var(--ink);
+    font-family:'Inter',system-ui,sans-serif;
+    padding-inline:16px;
+    padding-block:24px;
+    display:flex;
+    justify-content:center;
+  }
+  .wrap{width:100%;max-width:640px;display:flex;flex-direction:column;gap:18px;}
+
+  h1{
+    font-family:'Fraunces',Georgia,serif;
+    font-weight:600;
+    font-size:1.7rem;
+    margin:0;
+    letter-spacing:-0.01em;
+  }
+  .tagline{color:var(--ink-soft);font-size:0.85rem;margin-top:2px;}
+
+  header{display:flex;flex-direction:column;gap:2px;}
+
+  .card{
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:10px;
+    padding:16px;
+  }
+
+  .entry-form{display:flex;flex-direction:column;gap:8px;}
+  .entry-row{display:flex;gap:8px;}
+  #taskInput{
+    flex:1;
+    font:inherit;
+    font-size:0.95rem;
+    padding:11px 12px;
+    border-radius:8px;
+    border:1px solid var(--line);
+    background:var(--surface-2);
+    color:var(--ink);
+  }
+  #taskInput:focus{outline:2px solid var(--accent);outline-offset:1px;}
+  #logBtn{
+    font:inherit;
+    font-weight:600;
+    font-size:0.9rem;
+    padding:0 18px;
+    border-radius:8px;
+    border:1px solid var(--accent);
+    background:var(--accent);
+    color:#fff;
+    cursor:pointer;
+  }
+  #logBtn:active{transform:translateY(1px);}
+  .hint{font-size:0.78rem;color:var(--ink-soft);}
+  .hint.error{color:var(--danger);}
+
+  .tabs{display:flex;gap:2px;background:var(--surface-2);border-radius:8px;padding:3px;}
+  .tab{
+    flex:1;text-align:center;padding:8px 0;border-radius:6px;
+    font-size:0.85rem;font-weight:600;cursor:pointer;color:var(--ink-soft);
+    border:none;background:transparent;font-family:inherit;
+  }
+  .tab.active{background:var(--surface);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,0.06);}
+
+  .month-nav{display:flex;align-items:center;justify-content:space-between;gap:8px;}
+  .month-nav .label{font-family:'Fraunces',serif;font-weight:600;font-size:1.05rem;}
+  .month-nav button{
+    width:30px;height:30px;border-radius:7px;border:1px solid var(--line);
+    background:var(--surface);color:var(--ink);font-size:1rem;cursor:pointer;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .month-nav button:hover{background:var(--surface-2);}
+
+  .summary-row{display:flex;gap:18px;flex-wrap:wrap;}
+  .stat{display:flex;flex-direction:column;gap:1px;}
+  .stat .num{font-family:'IBM Plex Mono',monospace;font-size:1.3rem;font-variant-numeric:tabular-nums;}
+  .stat .lbl{font-size:0.72rem;color:var(--ink-soft);text-transform:uppercase;letter-spacing:0.04em;}
+
+  .day-group{display:flex;flex-direction:column;gap:6px;}
+  .day-heading{font-size:0.75rem;font-weight:600;color:var(--ink-soft);text-transform:uppercase;letter-spacing:0.05em;margin-top:4px;}
+
+  .entry{
+    display:flex;align-items:baseline;gap:8px;padding:7px 2px;
+    border-bottom:1px solid var(--line);
+  }
+  .entry:last-child{border-bottom:none;}
+  .entry .task{font-size:0.92rem;}
+  .entry .fill{flex:1;border-bottom:1px dotted var(--line);height:1px;align-self:center;margin:0 2px;}
+  .entry .hours{
+    font-family:'IBM Plex Mono',monospace;font-size:0.9rem;font-variant-numeric:tabular-nums;
+    white-space:nowrap;
+  }
+  .entry .del{
+    background:none;border:none;color:var(--ink-soft);cursor:pointer;font-size:0.85rem;
+    padding:2px 4px;border-radius:4px;line-height:1;
+  }
+  .entry .del:hover{color:var(--danger);background:var(--danger-soft);}
+
+  .entry.example{opacity:0.55;}
+  .example-tag{
+    font-size:0.62rem;font-weight:600;text-transform:uppercase;letter-spacing:0.04em;
+    color:var(--ink-soft);border:1px solid var(--line);border-radius:4px;padding:1px 5px;
+  }
+
+  .empty{color:var(--ink-soft);font-size:0.88rem;text-align:center;padding:20px 0 4px;}
+
+  table.report{width:100%;border-collapse:collapse;font-size:0.9rem;}
+  table.report th{
+    text-align:left;font-size:0.72rem;text-transform:uppercase;letter-spacing:0.04em;
+    color:var(--ink-soft);font-weight:600;padding-bottom:6px;border-bottom:1px solid var(--line);
+  }
+  table.report td{padding:8px 0;border-bottom:1px solid var(--line);}
+  table.report td.h{font-family:'IBM Plex Mono',monospace;font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap;}
+  table.report td.c{color:var(--ink-soft);text-align:right;font-size:0.82rem;white-space:nowrap;}
+  table.report tfoot td{border-bottom:none;padding-top:10px;font-weight:600;}
+
+  .report-actions{display:flex;justify-content:flex-end;}
+  .copy-btn{
+    font:inherit;font-size:0.8rem;font-weight:600;color:var(--accent);
+    background:var(--accent-soft);border:1px solid var(--line);border-radius:7px;
+    padding:7px 12px;cursor:pointer;
+  }
+  .copy-btn:hover{filter:brightness(0.97);}
+
+  .toast{
+    position:fixed;bottom:20px;left:50%;
+    transform:translateX(-50%);background:var(--ink);color:var(--bg);
+    padding:8px 16px;border-radius:20px;font-size:0.82rem;
+    opacity:0;pointer-events:none;transition:opacity 0.2s ease;
+  }
+  .toast.show{opacity:0.95;}
+
+  .banner{
+    font-size:0.78rem;color:var(--ink-soft);background:var(--surface-2);
+    border-radius:7px;padding:8px 10px;
+  }
+
+  @media (max-width:420px){
+    .entry-row{flex-direction:column;}
+    #logBtn{padding:11px;}
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header>
+    <h1>Hours Ledger</h1>
+    <div class="tagline">Log a task, get your hours — one line at a time.</div>
+  </header>
+
+  <div class="card entry-form">
+    <div class="entry-row">
+      <input id="taskInput" type="text" placeholder="New lead gen set up for Green Pantry — 3h" autocomplete="off" />
+      <button id="logBtn">Log</button>
+    </div>
+    <div class="hint" id="hint">End with the hours, e.g. "— 3h" or ", 2.5 hours".</div>
+  </div>
+
+  <div class="tabs" role="tablist">
+    <button class="tab active" id="tabLog" role="tab">Log</button>
+    <button class="tab" id="tabReport" role="tab">Month Report</button>
+  </div>
+
+  <div class="card" style="display:flex;flex-direction:column;gap:14px;">
+    <div class="month-nav">
+      <button id="prevMonth" aria-label="Previous month">‹</button>
+      <div class="label" id="monthLabel"></div>
+      <button id="nextMonth" aria-label="Next month">›</button>
+    </div>
+
+    <div class="summary-row">
+      <div class="stat"><div class="num" id="statTotal">0</div><div class="lbl">Hours</div></div>
+      <div class="stat"><div class="num" id="statEntries">0</div><div class="lbl">Entries</div></div>
+      <div class="stat"><div class="num" id="statDays">0</div><div class="lbl">Days worked</div></div>
+    </div>
+
+    <div id="logView"></div>
+    <div id="reportView" style="display:none;flex-direction:column;gap:12px;"></div>
+  </div>
+
+  <div class="banner">Entries save to this browser only (localStorage) — open this same page/browser to keep your history.</div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){
+  var state = {
+    entries: [],
+    view: 'log',
+    month: (function(){ var d=new Date(); return {y:d.getFullYear(), m:d.getMonth()}; })()
+  };
+
+  var els = {
+    taskInput: document.getElementById('taskInput'),
+    logBtn: document.getElementById('logBtn'),
+    hint: document.getElementById('hint'),
+    tabLog: document.getElementById('tabLog'),
+    tabReport: document.getElementById('tabReport'),
+    prevMonth: document.getElementById('prevMonth'),
+    nextMonth: document.getElementById('nextMonth'),
+    monthLabel: document.getElementById('monthLabel'),
+    statTotal: document.getElementById('statTotal'),
+    statEntries: document.getElementById('statEntries'),
+    statDays: document.getElementById('statDays'),
+    logView: document.getElementById('logView'),
+    reportView: document.getElementById('reportView'),
+    toast: document.getElementById('toast')
+  };
+
+  var MONTH_NAMES = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+
+  // ---------- parsing ----------
+  function finalize(taskRaw, hoursRaw){
+    var task = taskRaw.replace(/[-–—,\s]+$/,'').trim();
+    var hours = parseFloat(hoursRaw);
+    if(!task || !isFinite(hours) || hours<=0 || hours>24) return null;
+    return {task: task, hours: Math.round(hours*100)/100};
+  }
+  function parseEntry(raw){
+    var text = raw.trim();
+    if(!text) return null;
+    var m = text.match(/^(.*?)[\s,\-–—]*(\d+(?:\.\d+)?)\s*(hours?|hrs?|h)\s*$/i);
+    if(m) return finalize(m[1], m[2]);
+    m = text.match(/^(.*?)[\s]*[-–—,]\s*(\d+(?:\.\d+)?)\s*$/);
+    if(m) return finalize(m[1], m[2]);
+    return null;
+  }
+
+  // ---------- date helpers ----------
+  function todayIso(){
+    var d = new Date();
+    return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+  }
+  function fmtDay(iso){
+    var d = new Date(iso + 'T00:00:00');
+    var days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+    return days[d.getDay()] + ' ' + d.getDate() + ' ' + MONTH_NAMES[d.getMonth()].slice(0,3);
+  }
+  function monthKey(y,m){ return y + '-' + String(m+1).padStart(2,'0'); }
+
+  // ---------- storage (localStorage only) ----------
+  var LOCAL_KEY = 'hours_ledger_entries_v1';
+
+  function loadLocal(){
+    try{
+      var raw = localStorage.getItem(LOCAL_KEY);
+      return raw ? JSON.parse(raw) : [];
+    }catch(e){ return []; }
+  }
+  function saveLocal(entries){
+    try{ localStorage.setItem(LOCAL_KEY, JSON.stringify(entries)); }catch(e){}
+  }
+
+  function addEntry(entry){
+    entry.id = 'e-' + Date.now() + '-' + Math.random().toString(36).slice(2,7);
+    state.entries.push(entry);
+    saveLocal(state.entries);
+    render();
+  }
+  function removeEntry(id){
+    state.entries = state.entries.filter(function(e){ return e.id !== id; });
+    saveLocal(state.entries);
+    render();
+  }
+
+  // ---------- toast ----------
+  var toastTimer;
+  function showToast(msg){
+    els.toast.textContent = msg;
+    els.toast.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function(){ els.toast.classList.remove('show'); }, 1800);
+  }
+
+  // ---------- rendering ----------
+  function entriesForMonth(){
+    var key = monthKey(state.month.y, state.month.m);
+    return state.entries.filter(function(e){ return (e.date||'').indexOf(key) === 0; });
+  }
+
+  function renderMonthLabel(){
+    els.monthLabel.textContent = MONTH_NAMES[state.month.m] + ' ' + state.month.y;
+  }
+
+  function renderSummary(list){
+    var total = list.reduce(function(s,e){ return s + (e.hours||0); }, 0);
+    var days = new Set(list.map(function(e){ return e.date; })).size;
+    els.statTotal.textContent = (Math.round(total*100)/100).toString();
+    els.statEntries.textContent = list.length;
+    els.statDays.textContent = days;
+  }
+
+  var EXAMPLES = [
+    {task:'New lead gen set up for Green Pantry', hours:3, date: todayIso()},
+    {task:'Client reporting — MyInvestar', hours:1.5, date: todayIso()}
+  ];
+
+  function renderLog(list){
+    els.logView.innerHTML = '';
+    if(list.length === 0){
+      var wrap = document.createElement('div');
+      wrap.style.display = 'flex';
+      wrap.style.flexDirection = 'column';
+      wrap.style.gap = '10px';
+
+      var p = document.createElement('div');
+      p.className = 'empty';
+      p.textContent = 'No hours logged this month yet. Try the format below:';
+      wrap.appendChild(p);
+
+      var grp = document.createElement('div');
+      grp.className = 'day-group';
+      EXAMPLES.forEach(function(ex){
+        var row = document.createElement('div');
+        row.className = 'entry example';
+        row.innerHTML = '<span class="example-tag">Example</span><span class="task">'+escapeHtml(ex.task)+'</span><span class="fill"></span><span class="hours">'+ex.hours+'h</span>';
+        grp.appendChild(row);
+      });
+      wrap.appendChild(grp);
+      els.logView.appendChild(wrap);
+      return;
+    }
+
+    var byDay = {};
+    list.slice().sort(function(a,b){
+      if(a.date !== b.date) return a.date < b.date ? 1 : -1;
+      return (b.createdAt||0) - (a.createdAt||0);
+    }).forEach(function(e){
+      (byDay[e.date] = byDay[e.date] || []).push(e);
+    });
+
+    Object.keys(byDay).sort().reverse().forEach(function(date){
+      var group = document.createElement('div');
+      group.className = 'day-group';
+      var heading = document.createElement('div');
+      heading.className = 'day-heading';
+      heading.textContent = fmtDay(date);
+      group.appendChild(heading);
+
+      byDay[date].forEach(function(e){
+        var row = document.createElement('div');
+        row.className = 'entry';
+        row.innerHTML = '<span class="task">'+escapeHtml(e.task)+'</span><span class="fill"></span><span class="hours">'+e.hours+'h</span>';
+        var del = document.createElement('button');
+        del.className = 'del';
+        del.setAttribute('aria-label','Delete entry');
+        del.textContent = '✕';
+        del.addEventListener('click', function(){ removeEntry(e.id); });
+        row.appendChild(del);
+        group.appendChild(row);
+      });
+      els.logView.appendChild(group);
+    });
+  }
+
+  function renderReport(list){
+    els.reportView.innerHTML = '';
+    if(list.length === 0){
+      var p = document.createElement('div');
+      p.className = 'empty';
+      p.textContent = 'Nothing to report yet for this month.';
+      els.reportView.appendChild(p);
+      return;
+    }
+
+    var groups = {};
+    list.forEach(function(e){
+      var key = (e.task||'').trim().toLowerCase();
+      if(!groups[key]){ groups[key] = {label: e.task, hours: 0, count: 0}; }
+      groups[key].hours += e.hours || 0;
+      groups[key].count += 1;
+    });
+    var rows = Object.values(groups).sort(function(a,b){ return b.hours - a.hours; });
+    var total = rows.reduce(function(s,r){ return s + r.hours; }, 0);
+
+    var table = document.createElement('table');
+    table.className = 'report';
+    var thead = '<thead><tr><th>Task</th><th style="text-align:right;">Entries</th><th style="text-align:right;">Hours</th></tr></thead>';
+    var tbody = '<tbody>' + rows.map(function(r){
+      return '<tr><td>'+escapeHtml(r.label)+'</td><td class="c">'+r.count+'</td><td class="h">'+(Math.round(r.hours*100)/100)+'h</td></tr>';
+    }).join('') + '</tbody>';
+    var tfoot = '<tfoot><tr><td>Total</td><td class="c">'+list.length+'</td><td class="h">'+(Math.round(total*100)/100)+'h</td></tr></tfoot>';
+    table.innerHTML = thead + tbody + tfoot;
+    els.reportView.appendChild(table);
+
+    var actions = document.createElement('div');
+    actions.className = 'report-actions';
+    var btn = document.createElement('button');
+    btn.className = 'copy-btn';
+    btn.textContent = 'Copy report';
+    btn.addEventListener('click', function(){ copyReport(rows, total, list.length); });
+    actions.appendChild(btn);
+    els.reportView.appendChild(actions);
+  }
+
+  function copyReport(rows, total, count){
+    var lines = [];
+    lines.push(MONTH_NAMES[state.month.m] + ' ' + state.month.y + ' — Hours Report');
+    lines.push('');
+    rows.forEach(function(r){
+      lines.push(r.label + '  —  ' + (Math.round(r.hours*100)/100) + 'h (' + r.count + ' entr' + (r.count===1?'y':'ies') + ')');
+    });
+    lines.push('');
+    lines.push('Total: ' + (Math.round(total*100)/100) + 'h across ' + count + ' entries');
+    var text = lines.join('\n');
+
+    function done(ok){ showToast(ok ? 'Report copied' : 'Copy failed — select and copy manually'); }
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(text).then(function(){ done(true); }, function(){ done(false); });
+    } else {
+      try{
+        var ta = document.createElement('textarea');
+        ta.value = text;
+        ta.style.position = 'fixed';
+        ta.style.opacity = '0';
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+        done(true);
+      }catch(e){ done(false); }
+    }
+  }
+
+  function escapeHtml(s){
+    return String(s||'').replace(/[&<>"']/g, function(c){
+      return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
+    });
+  }
+
+  function render(){
+    renderMonthLabel();
+    var list = entriesForMonth();
+    renderSummary(list);
+    if(state.view === 'log'){ renderLog(list); } else { renderReport(list); }
+  }
+
+  // ---------- events ----------
+  function submitEntry(){
+    var raw = els.taskInput.value;
+    var parsed = parseEntry(raw);
+    if(!parsed){
+      els.hint.textContent = 'Couldn\'t find the hours — try ending with something like "— 3h".';
+      els.hint.classList.add('error');
+      return;
+    }
+    els.hint.classList.remove('error');
+    els.hint.textContent = 'End with the hours, e.g. "— 3h" or ", 2.5 hours".';
+    addEntry({task: parsed.task, hours: parsed.hours, date: todayIso(), createdAt: Date.now()});
+    els.taskInput.value = '';
+    els.taskInput.focus();
+    showToast('Logged ' + parsed.hours + 'h — ' + parsed.task);
+  }
+
+  els.logBtn.addEventListener('click', submitEntry);
+  els.taskInput.addEventListener('keydown', function(ev){
+    if(ev.key === 'Enter') submitEntry();
+  });
+
+  els.tabLog.addEventListener('click', function(){
+    state.view = 'log';
+    els.tabLog.classList.add('active');
+    els.tabReport.classList.remove('active');
+    els.logView.style.display = 'flex';
+    els.logView.style.flexDirection = 'column';
+    els.logView.style.gap = '14px';
+    els.reportView.style.display = 'none';
+    render();
+  });
+  els.tabReport.addEventListener('click', function(){
+    state.view = 'report';
+    els.tabReport.classList.add('active');
+    els.tabLog.classList.remove('active');
+    els.reportView.style.display = 'flex';
+    els.logView.style.display = 'none';
+    render();
+  });
+
+  els.prevMonth.addEventListener('click', function(){
+    state.month.m -= 1;
+    if(state.month.m < 0){ state.month.m = 11; state.month.y -= 1; }
+    render();
+  });
+  els.nextMonth.addEventListener('click', function(){
+    state.month.m += 1;
+    if(state.month.m > 11){ state.month.m = 0; state.month.y += 1; }
+    render();
+  });
+
+  state.entries = loadLocal();
+  renderMonthLabel();
+  render();
+})();
+</script>
+</body>
+</html>
