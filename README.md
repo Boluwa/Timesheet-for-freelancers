@@ -2,7 +2,7 @@
 
 A single-page freelance timesheet tracker. Type a task in plain language — "New lead gen set up for Client — 3h" — and it parses out the task and the hours automatically. Switch to the Month Report tab to see hours totaled by task for any month, with a one-click copy for sending on to a client. No build step, no backend — just an HTML file that saves your log to the browser.
 
-🔗 Live demo · 📁 Source
+🔗 Live demo ·[https://boluwa.github.io/Timesheet-for-freelancers/] 📁 Source 
 
 Features
 Natural-language entry — type the task and hours in one line, in whatever order feels natural (— 3h, , 2.5 hours, - 4)
